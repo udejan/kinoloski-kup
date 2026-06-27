@@ -595,7 +595,7 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
 
   {/* Desktop navigacija */}
   <div style={s.navLinks} className="nav-desktop">
-    {userProfile?.role === "admin" && (
+    {userProfile?.role === "admin" || userProfile?.role === "superadmin" && (
       <button style={s.roleToggle} onClick={() => {
         const next = viewRole === "admin" ? "user" : "admin";
         setViewRole(next);
@@ -625,7 +625,7 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
 {/* Mobilni meni */}
 {menuOpen && (
   <div style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "1rem 1.5rem", display: "flex", flexDirection: "column", gap: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", zIndex: 99, position: "relative" }} className="nav-mobile">
-    {userProfile?.role === "admin" && (
+    {userProfile?.role === "admin" || userProfile?.role === "superadmin" && (
       <button style={{ ...s.roleToggle, textAlign: "center" }} onClick={() => {
         const next = viewRole === "admin" ? "user" : "admin";
         setViewRole(next);
@@ -981,7 +981,7 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
       )}
 
       {/* ── ADMIN PANEL ────────────────────────────────────────────────── */}
-      {page === "admin" && currentUser && userProfile?.role === "admin" && (
+      {page === "admin" && currentUser && userProfile?.role === "admin" || userProfile?.role === "superadmin" && (
         <div style={s.page}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
             <div>
