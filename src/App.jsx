@@ -183,6 +183,7 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
       setDogSuccess("");
       setDogError("");
       setPage("dashboard");
+      if (competition) loadApplications();
     }
     setAuthForm({ name: "", email: "", password: "" });
     setAuthLoading(false);
