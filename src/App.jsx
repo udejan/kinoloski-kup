@@ -906,7 +906,7 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
                 </div>
               ))}
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,330px)", gap: 22, alignItems: "start" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 22, alignItems: "start" }}>
               <div>
                 <h2 style={{ fontSize: 16, fontWeight: 700, color: "#0C4A6E", marginBottom: 12 }}>Moje prijave</h2>
                 {myApps.length === 0 ? (
