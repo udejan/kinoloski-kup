@@ -121,7 +121,7 @@ export default function App() {
     const { data } = await supabase.from("profiles").select("*").eq("id", uid).single();
     if (data) {
       setUserProfile(data);
-      setViewRole(data.role === "admin" ? "admin" : "user");
+      setViewRole(data.role === "admin" || data.role === "superadmin" ? "admin" : "user");
     }
   };
 
@@ -175,7 +175,7 @@ setAuthMode("login");
 setAuthForm({ name: "", email: "", password: "" });
 showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
     } else {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({
         email: authForm.email,
         password: authForm.password,
       });
@@ -183,8 +183,14 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
       showNotif(`Dobrodošli!`);
       setDogSuccess("");
       setDogError("");
-      setPage("dashboard");
       if (competition) loadApplications();
+      const { data: profileData } = await supabase.from("profiles").select("role").eq("id", signInData.user.id).single();
+      const dest = profileData?.role === "admin" || profileData?.role === "superadmin" ? "admin" : "dashboard";
+      setPage(dest);
+      if (dest === "admin") {
+        loadUsers();
+        if (competition) loadApplications();
+      }
     }
     setAuthForm({ name: "", email: "", password: "" });
     setAuthLoading(false);
@@ -298,6 +304,11 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
 
   // ── PROMOTE/DEMOTE USER ───────────────────────────────────────────────────
   const handleRoleChange = async (uid, newRole, name) => {
+    const target = users.find(u => u.id === uid);
+    if (target?.role === "superadmin") {
+      showNotif("Nije moguće menjati ulogu superadmina.", "error");
+      return;
+    }
     const { error } = await supabase.from("profiles").update({ role: newRole }).eq("id", uid);
     if (error) { showNotif("Greška pri promeni uloge.", "error"); return; }
     setUsers(users.map(u => u.id === uid ? { ...u, role: newRole } : u));
@@ -594,7 +605,7 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
 
   {/* Desktop navigacija */}
   <div style={s.navLinks} className="nav-desktop">
-    {userProfile?.role === "admin" && (
+    {(userProfile?.role === "admin" || userProfile?.role === "superadmin") && (
       <button style={s.roleToggle} onClick={() => {
         const next = viewRole === "admin" ? "user" : "admin";
         setViewRole(next);
@@ -624,7 +635,7 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
 {/* Mobilni meni */}
 {menuOpen && (
   <div style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "1rem 1.5rem", display: "flex", flexDirection: "column", gap: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", zIndex: 99, position: "relative" }} className="nav-mobile">
-    {userProfile?.role === "admin" && (
+    {(userProfile?.role === "admin" || userProfile?.role === "superadmin") && (
       <button style={{ ...s.roleToggle, textAlign: "center" }} onClick={() => {
         const next = viewRole === "admin" ? "user" : "admin";
         setViewRole(next);
@@ -980,7 +991,7 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
       )}
 
       {/* ── ADMIN PANEL ────────────────────────────────────────────────── */}
-      {page === "admin" && currentUser && userProfile?.role === "admin" && (
+      {page === "admin" && currentUser && (userProfile?.role === "admin" || userProfile?.role === "superadmin") && (
         <div style={s.page}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
             <div>
@@ -1094,12 +1105,16 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
                       </td>
                       <td style={s.td}>{u.email || "—"}</td>
                       <td style={s.td}>
-                        <span style={{ background: isAdmin ? "#D1FAE5" : "#F1F5F9", color: isAdmin ? "#065F46" : "#475569", border: `1px solid ${isAdmin ? "#10B981" : "#CBD5E1"}`, borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 600 }}>
-                          {isAdmin ? "🔧 Admin" : "👤 Korisnik"}
+                        <span style={{ background: u.role === "superadmin" ? "#FEF3C7" : isAdmin ? "#D1FAE5" : "#F1F5F9",
+color: u.role === "superadmin" ? "#92400E" : isAdmin ? "#065F46" : "#475569",
+border: `1px solid ${u.role === "superadmin" ? "#F59E0B" : isAdmin ? "#10B981" : "#CBD5E1"}`, borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 600 }}>
+                          {u.role === "superadmin" ? "⭐ Superadmin" : isAdmin ? "🔧 Admin" : "👤 Korisnik"}
                         </span>
                       </td>
                       <td style={s.td}>
-                        {isSelf ? <span style={{ fontSize: 12, color: "#CBD5E1" }}>— nije moguće</span> : (
+                        {isSelf || u.role === "superadmin" ? (
+                          <span style={{ fontSize: 12, color: "#CBD5E1" }}>— nije moguće</span>
+                        ) : (
                           <button style={{ ...s.btn(isAdmin ? "danger" : "primary"), padding: "5px 14px", fontSize: 12 }}
                             onClick={() => handleRoleChange(u.id, isAdmin ? "user" : "admin", u.name)}>
                             {isAdmin ? "↓ Ukloni admina" : "↑ Promoviši u admina"}
