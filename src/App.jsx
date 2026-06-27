@@ -146,14 +146,16 @@ const { data, error } = await supabase.auth.signUp({
 });
 if (error) { setAuthError(error.message); setAuthLoading(false); return; }
 if (data?.user) {
-  const { error: profileError } = await supabase.from("profiles").insert({
+  await supabase.from("profiles").insert({
     id: data.user.id,
     name: authForm.name,
     role: "user",
   });
-  console.log("Profile insert error:", profileError);
+  await supabase.auth.signOut();
 }
-showNotif("Registracija uspešna! Možete se prijaviti.");
+setAuthMode("login");
+setAuthForm({ name: "", email: "", password: "" });
+showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
     } else {
       const { error } = await supabase.auth.signInWithPassword({
         email: authForm.email,
