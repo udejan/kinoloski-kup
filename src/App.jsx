@@ -655,63 +655,94 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
       <StatusBanner />
 
       {/* ── HOME ───────────────────────────────────────────────────────── */}
-      {page === "home" && (
-        <>
-          <div style={{ textAlign: "center", padding: "3rem 1.5rem 2rem", maxWidth: 680, margin: "0 auto" }}>
-            <div style={{ fontSize: 52, marginBottom: 8 }}>🏆</div>
-            {hasComp ? (
-              <>
-                <h1 style={{ fontSize: "clamp(1.8rem,5vw,2.5rem)", fontWeight: 800, color: "#0C4A6E", marginBottom: 8, lineHeight: 1.2 }}>{competition.name}</h1>
-                <p style={{ fontSize: 15, color: "#475569", marginBottom: 8 }}>📍 {competition.city} &nbsp;·&nbsp; 📅 {fmtDate(competition.date)}</p>
-                <p style={{ fontSize: 15, color: "#64748B", marginBottom: 28, lineHeight: 1.6 }}>Prijavite svog ljubimca i takmičite se za titulu šampiona!</p>
-              </>
-            ) : (
-              <p style={{ fontSize: 15, color: "#64748B", marginBottom: 28, lineHeight: 1.6 }}>Sledeće takmičenje još nije zakazano. Pratite nas za obaveštenja!</p>
-            )}
-            <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-              {!currentUser ? (
-                <>
-                  <button style={{ ...s.btn(), opacity: hasComp && regOpen ? 1 : 0.5 }} onClick={() => { setPage("auth"); setAuthMode("register"); }}>Prijavite psa →</button>
-                  <button style={s.btn("outline")} onClick={() => { setPage("auth"); setAuthMode("login"); }}>Već imate nalog</button>
-                </>
-              ) : (
-                <button style={s.btn()} onClick={() => setPage(effectiveRole === "admin" ? "admin" : "dashboard")}>Idi na dashboard →</button>
-              )}
-            </div>
+{page === "home" && (
+  <>
+    {/* Hero sekcija */}
+    <div style={{
+      position: "relative", minHeight: 480, display: "flex", alignItems: "center", justifyContent: "center",
+      background: "linear-gradient(135deg, #0C4A6E 0%, #0369A1 100%)",
+      overflow: "hidden",
+    }}>
+      <img
+        src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=1600&q=80"
+        alt="Kinološko takmičenje"
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.25 }}
+      />
+      <div style={{ position: "relative", zIndex: 1, textAlign: "center", padding: "3rem 1.5rem", maxWidth: 700, margin: "0 auto" }}>
+        <div style={{ fontSize: 56, marginBottom: 12 }}>🏆</div>
+        {hasComp ? (
+          <>
+            <h1 style={{ fontSize: "clamp(1.8rem,5vw,2.8rem)", fontWeight: 800, color: "#fff", marginBottom: 10, lineHeight: 1.2 }}>{competition.name}</h1>
+            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.85)", marginBottom: 8 }}>📍 {competition.city} &nbsp;·&nbsp; 📅 {fmtDate(competition.date)}</p>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.75)", marginBottom: 32, lineHeight: 1.6 }}>Prijavite svog ljubimca i takmičite se za titulu šampiona!</p>
+          </>
+        ) : (
+          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.8)", marginBottom: 32, lineHeight: 1.6 }}>Sledeće takmičenje još nije zakazano. Pratite nas za obaveštenja!</p>
+        )}
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+          {!currentUser ? (
+            <>
+              <button style={{ ...s.btn(), opacity: hasComp && regOpen ? 1 : 0.6, background: "#fff", color: "#0369A1", padding: "12px 28px", fontSize: 15 }}
+                onClick={() => { setPage("auth"); setAuthMode("register"); }}>
+                Prijavite psa →
+              </button>
+              <button style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 10, padding: "12px 28px", fontSize: 15, fontWeight: 600, cursor: "pointer" }}
+                onClick={() => { setPage("auth"); setAuthMode("login"); }}>
+                Već imate nalog
+              </button>
+            </>
+          ) : (
+            <button style={{ ...s.btn(), background: "#fff", color: "#0369A1", padding: "12px 28px", fontSize: 15 }}
+              onClick={() => setPage(effectiveRole === "admin" ? "admin" : "dashboard")}>
+              Idi na dashboard →
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* Info kartice */}
+    {hasComp && (
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 16, maxWidth: 780, margin: "2rem auto", padding: "0 1.5rem" }}>
+        {[
+          { icon: "📅", color: "#DBEAFE", title: "Datum",      text: fmtDate(competition.date) },
+          { icon: "📍", color: "#D1FAE5", title: "Mesto",      text: competition.city },
+          { icon: "🐾", color: "#FEF3C7", title: "Kategorije", text: `${CATEGORIES.length} kategorije` },
+          { icon: "🎖️", color: "#FCE7F3", title: "Nagrade",    text: "Zlatna, srebrna, bronzana" },
+        ].map((c, i) => (
+          <div key={i} style={s.infoCard}>
+            <div style={s.iconBox(c.color)}>{c.icon}</div>
+            <div style={{ fontWeight: 700, fontSize: 13, color: "#1e293b", marginBottom: 4 }}>{c.title}</div>
+            <div style={{ fontSize: 13, color: "#0369A1", fontWeight: 600 }}>{c.text}</div>
           </div>
+        ))}
+      </div>
+    )}
 
-          {hasComp && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 16, maxWidth: 780, margin: "0 auto 2rem", padding: "0 1.5rem" }}>
-              {[
-                { icon: "📅", color: "#DBEAFE", title: "Datum",     text: fmtDate(competition.date) },
-                { icon: "📍", color: "#D1FAE5", title: "Mesto",     text: competition.city },
-                { icon: "🐾", color: "#FEF3C7", title: "Kategorije",text: `${CATEGORIES.length} kategorije` },
-                { icon: "🎖️", color: "#FCE7F3", title: "Nagrade",   text: "Zlatna, srebrna, bronzana" },
-              ].map((c, i) => (
-                <div key={i} style={s.infoCard}>
-                  <div style={s.iconBox(c.color)}>{c.icon}</div>
-                  <div style={{ fontWeight: 700, fontSize: 13, color: "#1e293b", marginBottom: 4 }}>{c.title}</div>
-                  <div style={{ fontSize: 13, color: "#0369A1", fontWeight: 600 }}>{c.text}</div>
-                </div>
-              ))}
-            </div>
-          )}
+    {/* Obaveštenje o uplati */}
+    {hasComp && (
+      <div style={{ maxWidth: 780, margin: "0 auto 2rem", padding: "0 1.5rem" }}>
+        <div style={{ background: "#FEF3C7", border: "1px solid #F59E0B", borderRadius: 14, padding: "1.25rem 1.5rem" }}>
+          <div style={{ fontWeight: 700, color: "#92400E", fontSize: 15, marginBottom: 8 }}>💳 Važno — uslovi prijave</div>
+          <p style={{ color: "#78350F", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
+            Biće prihvaćene samo one prijave za koje je <strong>izvršena uplata kotizacije</strong>.
+            Pri uplati kao poziv na broj navedite <strong>broj mikročipa psa</strong>.
+            Administrator će odobriti prijavu nakon provere uplate.
+            {competition.deadline && <><br /><strong>Rok za prijave: {fmtDate(competition.deadline)}</strong>{daysToDeadline !== null && daysToDeadline >= 0 && ` — još ${daysToDeadline} dana.`}</>}
+          </p>
+        </div>
+      </div>
+    )}
 
-          {hasComp && (
-            <div style={{ maxWidth: 780, margin: "0 auto 2.5rem", padding: "0 1.5rem" }}>
-              <div style={{ background: "#FEF3C7", border: "1px solid #F59E0B", borderRadius: 14, padding: "1.25rem 1.5rem" }}>
-                <div style={{ fontWeight: 700, color: "#92400E", fontSize: 15, marginBottom: 8 }}>💳 Važno — uslovi prijave</div>
-                <p style={{ color: "#78350F", fontSize: 14, lineHeight: 1.7, margin: 0 }}>
-                  Biće prihvaćene samo one prijave za koje je <strong>izvršena uplata kotizacije</strong>.
-                  Pri uplati kao poziv na broj navedite <strong>broj mikročipa psa</strong>.
-                  Administrator će odobriti prijavu nakon provere uplate.
-                  {competition.deadline && <><br /><strong>Rok za prijave: {fmtDate(competition.deadline)}</strong>{daysToDeadline !== null && daysToDeadline >= 0 && ` — još ${daysToDeadline} dana.`}</>}
-                </p>
-              </div>
-            </div>
-          )}
-        </>
-      )}
+    {/* Galerija */}
+    <div style={{ maxWidth: 780, margin: "0 auto 2rem", padding: "0 1.5rem" }}>
+      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0C4A6E", marginBottom: 16, textAlign: "center" }}>Sa naših takmičenja</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
+        {[
+          { url: "https://images.unsplash.com/photo-1558788353-f76d92427f16?w=600&q=80", alt: "Pas na takmičenju" },
+          { url: "https://images.unsplash.com/photo-1477884213360-7e9d7dcc1e48?w=600&q=80", alt: "Kinološka izložba" },
+          { url: "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=600&q=80", alt: "Psi na izložbi" },
+          { url: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=600&q=80", alt: "Pobednički pas" },
 
       {/* ── AUTH ───────────────────────────────────────────────────────── */}
       {page === "reset" && (
