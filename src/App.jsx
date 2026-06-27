@@ -1219,9 +1219,8 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
             </div>
           </div>
         </div>
-      )}
-    </div>
-    {/* ── FOOTER ─────────────────────────────────────────────────────── */}
+  )}
+      {/* ── FOOTER ─────────────────────────────────────────────────────── */}
       <footer style={{ background: "#0C4A6E", color: "rgba(255,255,255,0.7)", textAlign: "center", padding: "1.5rem", fontSize: 13, marginTop: "auto" }}>
         <p style={{ margin: 0 }}>
           © {new Date().getFullYear()} KinološkiKup — Sva prava zadržana
@@ -1230,5 +1229,6 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
           Fotografije: <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.5)", textDecoration: "none" }}>Unsplash</a>
         </p>
       </footer>
+    </div>
   );
 }
