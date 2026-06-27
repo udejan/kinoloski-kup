@@ -122,7 +122,7 @@ export default function App() {
     const { data } = await supabase.from("profiles").select("*").eq("id", uid).single();
     if (data) {
       setUserProfile(data);
-      setViewRole(data.role === "admin" ? "admin" : "user");
+      setViewRole(data.role === "admin" || data.role === "superadmin" ? "admin" : "user");
     }
   };
 
