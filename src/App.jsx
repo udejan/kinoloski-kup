@@ -419,7 +419,7 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
       [],
       ["UKUPNO", approved.length, ""],
       [],
-      ["Datum arhiviranja", new Date().toLocaleDateString("sr-RS"), ""],
+      ["Datum arhiviranja", new Date().toLocaleString("sr-RS"), ""],
     ];
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
     wsSummary["!cols"] = [{ wch: 28 }, { wch: 20 }, { wch: 10 }];
