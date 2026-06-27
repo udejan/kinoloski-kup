@@ -1112,11 +1112,7 @@ border: `1px solid ${isSuperAdminRow ? "#F59E0B" : isAdmin ? "#10B981" : "#CBD5E
     {isAdmin ? "↓ Ukloni admina" : "↑ Promoviši u admina"}
   </button>
 )}
-                          <button style={{ ...s.btn(isAdmin ? "danger" : "primary"), padding: "5px 14px", fontSize: 12 }}
-                            onClick={() => handleRoleChange(u.id, isAdmin ? "user" : "admin", u.name)}>
-                            {isAdmin ? "↓ Ukloni admina" : "↑ Promoviši u admina"}
-                          </button>
-                        )}
+                          
                       </td>
                     </tr>
                   );
