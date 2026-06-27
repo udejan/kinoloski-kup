@@ -173,7 +173,7 @@ if (data?.user) {
 }
 setAuthMode("login");
 setAuthForm({ name: "", email: "", password: "" });
-showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
+showNotif("Registracija uspešna! Proverite email i potvrdite nalog pre prijave.");
     } else {
       const { data: signInData, error } = await supabase.auth.signInWithPassword({
         email: authForm.email,
