@@ -60,6 +60,8 @@ export default function App() {
   // misc
   const [exporting, setExporting]       = useState(false);
   const [resetMode, setResetMode] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [resetComplete, setResetComplete] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetMsg, setResetMsg] = useState("");
   const [notification, setNotification] = useState(null);
@@ -96,6 +98,17 @@ export default function App() {
     loadCompetition();
     return () => subscription.unsubscribe();
   }, []);
+  
+  useEffect(() => {
+  const hash = window.location.hash;
+  if (hash && hash.includes("access_token")) {
+    setPage("reset");
+  }
+  if (hash && hash.includes("error=access_denied")) {
+    showNotif("Link za reset je istekao. Pokušajte ponovo.", "error");
+    window.history.replaceState(null, "", window.location.pathname);
+  }
+}, []);
 
   useEffect(() => {
     if (competition) loadApplications();
@@ -187,6 +200,22 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
     if (error) return setResetMsg("Greška. Proverite email adresu.");
     setResetMsg("Link za reset lozinke je poslat na vaš email!");
   };
+
+  const handleSetNewPassword = async () => {
+  if (!newPassword || newPassword.length < 6)
+    return showNotif("Lozinka mora imati najmanje 6 karaktera.", "error");
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) return showNotif("Greška pri promeni lozinke.", "error");
+  setResetComplete(true);
+  showNotif("Lozinka uspešno promenjena! Možete se prijaviti.");
+  await supabase.auth.signOut();
+  setTimeout(() => {
+    setPage("auth");
+    setResetComplete(false);
+    setNewPassword("");
+    window.history.replaceState(null, "", window.location.pathname);
+  }, 2000);
+};
 
   // ── DOG SUBMIT ────────────────────────────────────────────────────────────
   const handleDogSubmit = async () => {
@@ -521,6 +550,34 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
       )}
 
       {/* ── AUTH ───────────────────────────────────────────────────────── */}
+      {page === "reset" && (
+  <div style={{ maxWidth: 440, margin: "0 auto", padding: "2rem 1.5rem" }}>
+    <div style={s.card}>
+      <div style={{ textAlign: "center", marginBottom: 22 }}>
+        <div style={{ fontSize: 38, marginBottom: 8 }}>🔑</div>
+        <h2 style={{ fontSize: 19, fontWeight: 700, color: "#0C4A6E" }}>Nova lozinka</h2>
+        <p style={{ fontSize: 13, color: "#64748B", marginTop: 6 }}>Unesite vašu novu lozinku.</p>
+      </div>
+      {!resetComplete && (
+        <>
+          <div style={s.fg}>
+            <label style={s.label}>Nova lozinka</label>
+            <input style={s.input} type="password" placeholder="Najmanje 6 karaktera"
+              value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+          </div>
+          <button style={{ ...s.btn(), width: "100%" }} onClick={handleSetNewPassword}>
+            Sačuvaj novu lozinku
+          </button>
+        </>
+      )}
+      {resetComplete && (
+        <div style={{ textAlign: "center", color: "#065F46", fontWeight: 600 }}>
+          ✓ Lozinka promenjena! Preusmeravanje...
+        </div>
+      )}
+    </div>
+  </div>
+)}
       {page === "auth" && (
   <div style={{ maxWidth: 440, margin: "0 auto", padding: "2rem 1.5rem" }}>
     <div style={s.card}>
