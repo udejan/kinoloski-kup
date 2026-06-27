@@ -59,6 +59,9 @@ export default function App() {
 
   // misc
   const [exporting, setExporting]       = useState(false);
+  const [resetMode, setResetMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetMsg, setResetMsg] = useState("");
   const [notification, setNotification] = useState(null);
 
   // ── COMPUTED ───────────────────────────────────────────────────────────────
@@ -173,6 +176,16 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
     await supabase.auth.signOut();
     setPage("home"); setViewRole("guest");
     showNotif("Odjavili ste se.", "info");
+  };
+
+  const handleResetPassword = async () => {
+    setResetMsg("");
+    if (!resetEmail) return setResetMsg("Unesite email adresu.");
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: window.location.origin + "?reset=true",
+      });
+    if (error) return setResetMsg("Greška. Proverite email adresu.");
+    setResetMsg("Link za reset lozinke je poslat na vaš email!");
   };
 
   // ── DOG SUBMIT ────────────────────────────────────────────────────────────
@@ -509,41 +522,88 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
 
       {/* ── AUTH ───────────────────────────────────────────────────────── */}
       {page === "auth" && (
-        <div style={{ maxWidth: 440, margin: "0 auto", padding: "2rem 1.5rem" }}>
-          <div style={s.card}>
-            <div style={{ textAlign: "center", marginBottom: 22 }}>
-              <div style={{ fontSize: 38, marginBottom: 8 }}>🐕</div>
-              <h2 style={{ fontSize: 19, fontWeight: 700, color: "#0C4A6E" }}>{authMode === "login" ? "Prijavite se" : "Registrujte se"}</h2>
+  <div style={{ maxWidth: 440, margin: "0 auto", padding: "2rem 1.5rem" }}>
+    <div style={s.card}>
+      <div style={{ textAlign: "center", marginBottom: 22 }}>
+        <div style={{ fontSize: 38, marginBottom: 8 }}>🐕</div>
+        <h2 style={{ fontSize: 19, fontWeight: 700, color: "#0C4A6E" }}>
+          {resetMode ? "Reset lozinke" : authMode === "login" ? "Prijavite se" : "Registrujte se"}
+        </h2>
+      </div>
+
+      {resetMode ? (
+        <>
+          <p style={{ fontSize: 13, color: "#64748B", marginBottom: 16 }}>
+            Unesite email adresu i poslaćemo vam link za reset lozinke.
+          </p>
+          <div style={s.fg}>
+            <label style={s.label}>Email adresa</label>
+            <input style={s.input} type="email" placeholder="vas@email.com"
+              value={resetEmail} onChange={e => setResetEmail(e.target.value)} />
+          </div>
+          {resetMsg && (
+            <div style={{ background: resetMsg.includes("poslat") ? "#D1FAE5" : "#FEE2E2", color: resetMsg.includes("poslat") ? "#065F46" : "#991B1B", borderRadius: 8, padding: "8px 12px", fontSize: 13, marginBottom: 12 }}>
+              {resetMsg}
             </div>
-            {authMode === "register" && (
-              <div style={s.fg}>
-                <label style={s.label}>Ime i prezime</label>
-                <input style={s.input} placeholder="Vaše ime" value={authForm.name} onChange={e => setAuthForm({ ...authForm, name: e.target.value })} />
-              </div>
-            )}
+          )}
+          <button style={{ ...s.btn(), width: "100%", marginBottom: 12 }} onClick={handleResetPassword}>
+            Pošalji link za reset
+          </button>
+          <div style={{ textAlign: "center", fontSize: 13, color: "#6B7280" }}>
+            <span style={{ color: "#0369A1", cursor: "pointer", fontWeight: 600 }}
+              onClick={() => { setResetMode(false); setResetMsg(""); setResetEmail(""); }}>
+              ← Nazad na prijavu
+            </span>
+          </div>
+        </>
+      ) : (
+        <>
+          {authMode === "register" && (
             <div style={s.fg}>
-              <label style={s.label}>Email adresa</label>
-              <input style={s.input} type="email" placeholder="vas@email.com" value={authForm.email} onChange={e => setAuthForm({ ...authForm, email: e.target.value })} />
+              <label style={s.label}>Ime i prezime</label>
+              <input style={s.input} placeholder="Vaše ime" value={authForm.name}
+                onChange={e => setAuthForm({ ...authForm, name: e.target.value })} />
             </div>
-            <div style={s.fg}>
-              <label style={s.label}>Lozinka</label>
-              <input style={s.input} type="password" placeholder="••••••••" value={authForm.password} onChange={e => setAuthForm({ ...authForm, password: e.target.value })} />
-            </div>
-            {authError && <div style={{ background: "#FEE2E2", color: "#991B1B", borderRadius: 8, padding: "8px 12px", fontSize: 13, marginBottom: 12 }}>{authError}</div>}
-            <button style={{ ...s.btn(), width: "100%", marginBottom: 12, opacity: authLoading ? 0.7 : 1 }} onClick={handleAuth} disabled={authLoading}>
-              {authLoading ? "..." : authMode === "login" ? "Prijavite se" : "Registrujte se"}
-            </button>
-            <div style={{ textAlign: "center", fontSize: 13, color: "#6B7280" }}>
-              {authMode === "login" ? "Nemate nalog? " : "Već imate nalog? "}
-              <span style={{ color: "#0369A1", cursor: "pointer", fontWeight: 600 }}
-                onClick={() => { setAuthMode(m => m === "login" ? "register" : "login"); setAuthError(""); }}>
-                {authMode === "login" ? "Registrujte se" : "Prijavite se"}
+          )}
+          <div style={s.fg}>
+            <label style={s.label}>Email adresa</label>
+            <input style={s.input} type="email" placeholder="vas@email.com" value={authForm.email}
+              onChange={e => setAuthForm({ ...authForm, email: e.target.value })} />
+          </div>
+          <div style={s.fg}>
+            <label style={s.label}>Lozinka</label>
+            <input style={s.input} type="password" placeholder="••••••••" value={authForm.password}
+              onChange={e => setAuthForm({ ...authForm, password: e.target.value })} />
+          </div>
+          {authMode === "login" && (
+            <div style={{ textAlign: "right", marginTop: -10, marginBottom: 12 }}>
+              <span style={{ fontSize: 12, color: "#0369A1", cursor: "pointer", fontWeight: 600 }}
+                onClick={() => { setResetMode(true); setResetMsg(""); setResetEmail(authForm.email); }}>
+                Zaboravili ste lozinku?
               </span>
             </div>
+          )}
+          {authError && (
+            <div style={{ background: "#FEE2E2", color: "#991B1B", borderRadius: 8, padding: "8px 12px", fontSize: 13, marginBottom: 12 }}>
+              {authError}
+            </div>
+          )}
+          <button style={{ ...s.btn(), width: "100%", marginBottom: 12, opacity: authLoading ? 0.7 : 1 }}
+            onClick={handleAuth} disabled={authLoading}>
+            {authLoading ? "..." : authMode === "login" ? "Prijavite se" : "Registrujte se"}
+          </button>
+          <div style={{ textAlign: "center", fontSize: 13, color: "#6B7280" }}>
+            {authMode === "login" ? "Nemate nalog? " : "Već imate nalog? "}
+            <span style={{ color: "#0369A1", cursor: "pointer", fontWeight: 600 }}
+              onClick={() => { setAuthMode(m => m === "login" ? "register" : "login"); setAuthError(""); }}>
+              {authMode === "login" ? "Registrujte se" : "Prijavite se"}
+            </span>
           </div>
-        </div>
+        </>
       )}
-
+    </div>
+  </div>
+)}
       {/* ── USER DASHBOARD ─────────────────────────────────────────────── */}
       {page === "dashboard" && currentUser && (
         !hasComp ? <LockedDashboard reason="none" /> :
