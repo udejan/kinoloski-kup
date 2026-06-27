@@ -1,0 +1,8 @@
+@media (max-width: 640px) {
+  .hamburger {
+    display: block !important;
+  }
+  .nav-desktop {
+    display: none !important;
+  }
+}

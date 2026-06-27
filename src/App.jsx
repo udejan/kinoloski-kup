@@ -63,6 +63,7 @@ export default function App() {
   const [newPassword, setNewPassword] = useState("");
   const [resetComplete, setResetComplete] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetMsg, setResetMsg] = useState("");
   const [notification, setNotification] = useState(null);
@@ -579,35 +580,77 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
       {notification && <div style={s.notif(notification.type)}>{notification.msg}</div>}
 
       {/* NAV */}
-      <nav style={s.nav}>
-        <div style={s.logo} onClick={() => setPage("home")}>🐕 KinološkiKup</div>
-        <div style={s.navLinks}>
-          {userProfile?.role === "admin" && (
-            <button style={s.roleToggle} onClick={() => {
-              const next = viewRole === "admin" ? "user" : "admin";
-              setViewRole(next);
-              setPage(next === "admin" ? "admin" : "dashboard");
-            }}>
-              {viewRole === "admin" ? "👤 Korisnik" : "🔧 Admin"}
-            </button>
-          )}
-          {!currentUser ? (
-            <>
-              <button style={s.navBtn(page === "home")} onClick={() => setPage("home")}>Početna</button>
-              <button style={s.navBtn(page === "auth")} onClick={() => { setPage("auth"); setAuthMode("login"); }}>Prijava</button>
-              <button style={{ ...s.btn(), padding: "6px 16px", fontSize: 13 }} onClick={() => { setPage("auth"); setAuthMode("register"); }}>Registracija</button>
-            </>
-          ) : (
-            <>
-              <button style={s.navBtn(page === "home")} onClick={() => setPage("home")}>Početna</button>
-              {effectiveRole === "admin"
-                ? <button style={s.navBtn(page === "admin")} onClick={() => { setPage("admin"); loadUsers(); }}>Admin panel</button>
-                : <button style={s.navBtn(page === "dashboard")} onClick={() => setPage("dashboard")}>Moje prijave</button>}
-              <button style={{ ...s.btn("outline"), padding: "6px 14px", fontSize: 13 }} onClick={handleLogout}>Odjava</button>
-            </>
-          )}
-        </div>
-      </nav>
+<nav style={s.nav}>
+  <div style={s.logo} onClick={() => { setPage("home"); setMenuOpen(false); }}>🐕 KinološkiKup</div>
+
+  {/* Hamburger dugme — vidljivo samo na mobilnom */}
+  <button
+    onClick={() => setMenuOpen(v => !v)}
+    style={{ display: "none", background: "none", border: "none", fontSize: 24, cursor: "pointer", color: "#0369A1", padding: "4px 8px" }}
+    className="hamburger"
+  >
+    {menuOpen ? "✕" : "☰"}
+  </button>
+
+  {/* Desktop navigacija */}
+  <div style={s.navLinks} className="nav-desktop">
+    {userProfile?.role === "admin" && (
+      <button style={s.roleToggle} onClick={() => {
+        const next = viewRole === "admin" ? "user" : "admin";
+        setViewRole(next);
+        setPage(next === "admin" ? "admin" : "dashboard");
+      }}>
+        {viewRole === "admin" ? "👤 Korisnik" : "🔧 Admin"}
+      </button>
+    )}
+    {!currentUser ? (
+      <>
+        <button style={s.navBtn(page === "home")} onClick={() => setPage("home")}>Početna</button>
+        <button style={s.navBtn(page === "auth")} onClick={() => { setPage("auth"); setAuthMode("login"); }}>Prijava</button>
+        <button style={{ ...s.btn(), padding: "6px 16px", fontSize: 13 }} onClick={() => { setPage("auth"); setAuthMode("register"); }}>Registracija</button>
+      </>
+    ) : (
+      <>
+        <button style={s.navBtn(page === "home")} onClick={() => setPage("home")}>Početna</button>
+        {effectiveRole === "admin"
+          ? <button style={s.navBtn(page === "admin")} onClick={() => { setPage("admin"); loadUsers(); }}>Admin panel</button>
+          : <button style={s.navBtn(page === "dashboard")} onClick={() => setPage("dashboard")}>Moje prijave</button>}
+        <button style={{ ...s.btn("outline"), padding: "6px 14px", fontSize: 13 }} onClick={handleLogout}>Odjava</button>
+      </>
+    )}
+  </div>
+</nav>
+
+{/* Mobilni meni */}
+{menuOpen && (
+  <div style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "1rem 1.5rem", display: "flex", flexDirection: "column", gap: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", zIndex: 99, position: "relative" }} className="nav-mobile">
+    {userProfile?.role === "admin" && (
+      <button style={{ ...s.roleToggle, textAlign: "center" }} onClick={() => {
+        const next = viewRole === "admin" ? "user" : "admin";
+        setViewRole(next);
+        setPage(next === "admin" ? "admin" : "dashboard");
+        setMenuOpen(false);
+      }}>
+        {viewRole === "admin" ? "👤 Korisnik pogled" : "🔧 Admin pogled"}
+      </button>
+    )}
+    {!currentUser ? (
+      <>
+        <button style={{ ...s.navBtn(page === "home"), textAlign: "left", padding: "10px 14px" }} onClick={() => { setPage("home"); setMenuOpen(false); }}>Početna</button>
+        <button style={{ ...s.navBtn(page === "auth"), textAlign: "left", padding: "10px 14px" }} onClick={() => { setPage("auth"); setAuthMode("login"); setMenuOpen(false); }}>Prijava</button>
+        <button style={{ ...s.btn(), width: "100%", padding: "10px" }} onClick={() => { setPage("auth"); setAuthMode("register"); setMenuOpen(false); }}>Registracija</button>
+      </>
+    ) : (
+      <>
+        <button style={{ ...s.navBtn(page === "home"), textAlign: "left", padding: "10px 14px" }} onClick={() => { setPage("home"); setMenuOpen(false); }}>Početna</button>
+        {effectiveRole === "admin"
+          ? <button style={{ ...s.navBtn(page === "admin"), textAlign: "left", padding: "10px 14px" }} onClick={() => { setPage("admin"); loadUsers(); setMenuOpen(false); }}>Admin panel</button>
+          : <button style={{ ...s.navBtn(page === "dashboard"), textAlign: "left", padding: "10px 14px" }} onClick={() => { setPage("dashboard"); setMenuOpen(false); }}>Moje prijave</button>}
+        <button style={{ ...s.btn("outline"), width: "100%", padding: "10px" }} onClick={() => { handleLogout(); setMenuOpen(false); }}>Odjava</button>
+      </>
+    )}
+  </div>
+)}
 
       <StatusBanner />
 
