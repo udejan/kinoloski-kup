@@ -736,13 +736,15 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
 
     {/* Galerija */}
     <div style={{ maxWidth: 780, margin: "0 auto 2rem", padding: "0 1.5rem" }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0C4A6E", marginBottom: 16, textAlign: "center" }}>Sa naših takmičenja</h2>
+      <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0C4A6E", marginBottom: 16, textAlign: "center" }}>Galerija</h2>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
         {[
           { url: "https://images.unsplash.com/photo-1558788353-f76d92427f16?w=600&q=80", alt: "Pas na takmičenju" },
           { url: "https://images.unsplash.com/photo-1477884213360-7e9d7dcc1e48?w=600&q=80", alt: "Kinološka izložba" },
           { url: "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=600&q=80", alt: "Psi na izložbi" },
           { url: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=600&q=80", alt: "Pobednički pas" },
+          { url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=600&q=80", alt: "Psi u trčanju" },
+          { url: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&q=80", alt: "Pas sa medaljom" },
           
           ].map((img, i) => (
           <div key={i} style={{ borderRadius: 14, overflow: "hidden", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", aspectRatio: "4/3" }}>
