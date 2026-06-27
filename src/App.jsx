@@ -70,8 +70,9 @@ export default function App() {
 
   // ── COMPUTED ───────────────────────────────────────────────────────────────
   const effectiveRole = userProfile
-    ? (viewRole === "admin" && userProfile.role === "admin" ? "admin" : "user")
-    : "guest";
+  ? (viewRole === "admin" && (userProfile.role === "admin" || userProfile.role === "superadmin") ? "admin" : "user")
+  : "guest";
+  const isSuperAdmin = userProfile?.role === "superadmin";
   const hasComp = competition !== null;
   const regOpen = hasComp && competition.registration_open && (
     !competition.deadline || new Date(competition.deadline) >= new Date(new Date().toDateString())
@@ -1080,8 +1081,9 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
               </thead>
               <tbody>
                 {users.map(u => {
-                  const isSelf  = u.id === currentUser.id;
-                  const isAdmin = u.role === "admin";
+                  const isSelf          = u.id === currentUser.id;
+                  const isAdmin         = u.role === "admin";
+                  const isSuperAdminRow = u.role === "superadmin";
                   return (
                     <tr key={u.id} style={{ background: isAdmin ? "#F0FDF4" : "white" }}>
                       <td style={s.td}>
@@ -1094,12 +1096,22 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
                       </td>
                       <td style={s.td}>{u.email || "—"}</td>
                       <td style={s.td}>
-                        <span style={{ background: isAdmin ? "#D1FAE5" : "#F1F5F9", color: isAdmin ? "#065F46" : "#475569", border: `1px solid ${isAdmin ? "#10B981" : "#CBD5E1"}`, borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 600 }}>
-                          {isAdmin ? "🔧 Admin" : "👤 Korisnik"}
+                        <span style={{ background: isSuperAdminRow ? "#FEF3C7" : isAdmin ? "#D1FAE5" : "#F1F5F9",
+color: isSuperAdminRow ? "#92400E" : isAdmin ? "#065F46" : "#475569",
+border: `1px solid ${isSuperAdminRow ? "#F59E0B" : isAdmin ? "#10B981" : "#CBD5E1"}`, borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 600 }}>
+                          {isSuperAdminRow ? "⭐ Superadmin" : isAdmin ? "🔧 Admin" : "👤 Korisnik"}
                         </span>
                       </td>
                       <td style={s.td}>
-                        {isSelf ? <span style={{ fontSize: 12, color: "#CBD5E1" }}>— nije moguće</span> : (
+                        {isSelf || isSuperAdminRow ? (
+  <span style={{ fontSize: 12, color: "#CBD5E1" }}>— nije moguće</span>
+) : (
+  <button
+    style={{ ...s.btn(isAdmin ? "danger" : "primary"), padding: "5px 14px", fontSize: 12 }}
+    onClick={() => handleRoleChange(u.id, isAdmin ? "user" : "admin", u.name)}>
+    {isAdmin ? "↓ Ukloni admina" : "↑ Promoviši u admina"}
+  </button>
+)}
                           <button style={{ ...s.btn(isAdmin ? "danger" : "primary"), padding: "5px 14px", fontSize: 12 }}
                             onClick={() => handleRoleChange(u.id, isAdmin ? "user" : "admin", u.name)}>
                             {isAdmin ? "↓ Ukloni admina" : "↑ Promoviši u admina"}
