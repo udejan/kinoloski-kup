@@ -305,40 +305,157 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
   };
 
   // ── EXPORT XLSX ───────────────────────────────────────────────────────────
-  const handleExportXLSX = async (comp = competition, apps = applications) => {
-    setExporting(true);
-    try {
-      const XLSX = await loadXLSX();
-      const approved = apps.filter(a => a.status === "approved");
-      const wb = XLSX.utils.book_new();
-      CATEGORIES.forEach(cat => {
-        const rows = approved.filter(a => a.category === cat);
-        const data = [
-          [`${comp.name} — Kategorija: ${cat}`],
-          [`Mesto: ${comp.city}   Datum: ${fmtDate(comp.date)}`],
-          [],
-          ["Rb.", "Ime psa", "Rasa", "Starost", "Mikročip", "Broj rodovnika", "Vlasnik", "Status"],
-          ...rows.map((a, i) => [i + 1, a.dog_name, a.breed, a.age, a.microchip || "—", a.pedigree || "—", a.owner_name, "Odobreno"]),
-        ];
-        if (!rows.length) data.push(["", "Nema odobrenih prijava u ovoj kategoriji", "", "", "", "", "", ""]);
-        const ws = XLSX.utils.aoa_to_sheet(data);
-        ws["!cols"] = [{ wch: 5 }, { wch: 18 }, { wch: 20 }, { wch: 12 }, { wch: 18 }, { wch: 16 }, { wch: 22 }, { wch: 12 }];
-        XLSX.utils.book_append_sheet(wb, ws, cat);
+ const handleExportXLSX = async (comp = competition, apps = applications) => {
+  setExporting(true);
+  try {
+    const XLSX = await loadXLSX();
+    const approved = apps.filter(a => a.status === "approved");
+    const wb = XLSX.utils.book_new();
+
+    const headerStyle = {
+      font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+      fill: { fgColor: { rgb: "0369A1" } },
+      alignment: { horizontal: "center", vertical: "center" },
+      border: {
+        top:    { style: "thin", color: { rgb: "CCCCCC" } },
+        bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+        left:   { style: "thin", color: { rgb: "CCCCCC" } },
+        right:  { style: "thin", color: { rgb: "CCCCCC" } },
+      }
+    };
+    const titleStyle = {
+      font: { bold: true, color: { rgb: "0C4A6E" }, sz: 14 },
+      alignment: { horizontal: "left" },
+    };
+    const subtitleStyle = {
+      font: { italic: true, color: { rgb: "475569" }, sz: 10 },
+    };
+    const rowEvenStyle = {
+      fill: { fgColor: { rgb: "F0F9FF" } },
+      border: {
+        top:    { style: "thin", color: { rgb: "E2E8F0" } },
+        bottom: { style: "thin", color: { rgb: "E2E8F0" } },
+        left:   { style: "thin", color: { rgb: "E2E8F0" } },
+        right:  { style: "thin", color: { rgb: "E2E8F0" } },
+      }
+    };
+    const rowOddStyle = {
+      fill: { fgColor: { rgb: "FFFFFF" } },
+      border: {
+        top:    { style: "thin", color: { rgb: "E2E8F0" } },
+        bottom: { style: "thin", color: { rgb: "E2E8F0" } },
+        left:   { style: "thin", color: { rgb: "E2E8F0" } },
+        right:  { style: "thin", color: { rgb: "E2E8F0" } },
+      }
+    };
+    const emptyStyle = {
+      font: { italic: true, color: { rgb: "94A3B8" } },
+      alignment: { horizontal: "center" },
+    };
+
+    const applyStyle = (ws, cellRef, style) => {
+      if (!ws[cellRef]) ws[cellRef] = { v: "", t: "s" };
+      ws[cellRef].s = style;
+    };
+
+    CATEGORIES.forEach(cat => {
+      const rows = approved.filter(a => a.category === cat);
+      const headers = ["Rb.", "Ime psa", "Rasa", "Starost", "Mikročip", "Broj rodovnika", "Vlasnik", "Status"];
+
+      const data = [
+        [`${comp.name} — Kategorija: ${cat}`, "", "", "", "", "", "", ""],
+        [`Mesto: ${comp.city}   |   Datum: ${fmtDate(comp.date)}   |   Datum izvoza: ${new Date().toLocaleDateString("sr-RS")}`, "", "", "", "", "", "", ""],
+        [],
+        headers,
+        ...rows.map((a, i) => [i + 1, a.dog_name, a.breed, a.age, a.microchip || "—", a.pedigree || "—", a.owner_name, "Odobreno"]),
+      ];
+
+      if (!rows.length) data.push(["", "Nema odobrenih prijava u ovoj kategoriji", "", "", "", "", "", ""]);
+
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      ws["!cols"] = [{ wch: 5 }, { wch: 20 }, { wch: 22 }, { wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 24 }, { wch: 12 }];
+      ws["!rows"] = [{ hpt: 24 }, { hpt: 16 }, { hpt: 8 }, { hpt: 20 }];
+
+      // Merge title row
+      ws["!merges"] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } },
+      ];
+
+      // Style title and subtitle
+      applyStyle(ws, "A1", titleStyle);
+      applyStyle(ws, "A2", subtitleStyle);
+
+      // Style headers (row 4, index 3)
+      headers.forEach((_, ci) => {
+        const cellRef = XLSX.utils.encode_cell({ r: 3, c: ci });
+        applyStyle(ws, cellRef, headerStyle);
       });
-      const wsSummary = XLSX.utils.aoa_to_sheet([
-        [`${comp.name}`], [`${comp.city}, ${fmtDate(comp.date)}`], [],
-        ["Kategorija", "Broj odobrenih prijava"],
-        ...CATEGORIES.map(cat => [cat, approved.filter(a => a.category === cat).length]),
-        [], ["UKUPNO", approved.length], [],
-        ["Datum arhiviranja", new Date().toLocaleDateString("sr-RS")],
-      ]);
-      wsSummary["!cols"] = [{ wch: 28 }, { wch: 26 }];
-      XLSX.utils.book_append_sheet(wb, wsSummary, "Pregled");
-      XLSX.writeFile(wb, `${slugify(comp.name)}_Arhiva.xlsx`);
-      showNotif(`Arhiva "${comp.name}" uspešno izvezena!`);
-    } catch { showNotif("Greška pri izvozu.", "error"); }
-    setExporting(false);
-  };
+
+      // Style data rows
+      rows.forEach((_, ri) => {
+        const style = ri % 2 === 0 ? rowEvenStyle : rowOddStyle;
+        headers.forEach((_, ci) => {
+          const cellRef = XLSX.utils.encode_cell({ r: 4 + ri, c: ci });
+          applyStyle(ws, cellRef, style);
+        });
+      });
+
+      // Style empty message
+      if (!rows.length) {
+        applyStyle(ws, "B5", emptyStyle);
+      }
+
+      XLSX.utils.book_append_sheet(wb, ws, cat);
+    });
+
+    // Summary sheet
+    const summaryData = [
+      [`${comp.name}`, "", ""],
+      [`${comp.city}   |   ${fmtDate(comp.date)}`, "", ""],
+      [],
+      ["Kategorija", "Odobrenih prijava", ""],
+      ...CATEGORIES.map(cat => [cat, approved.filter(a => a.category === cat).length, ""]),
+      [],
+      ["UKUPNO", approved.length, ""],
+      [],
+      ["Datum arhiviranja", new Date().toLocaleDateString("sr-RS"), ""],
+    ];
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    wsSummary["!cols"] = [{ wch: 28 }, { wch: 20 }, { wch: 10 }];
+    wsSummary["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 2 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 2 } },
+    ];
+
+    applyStyle(wsSummary, "A1", titleStyle);
+    applyStyle(wsSummary, "A2", subtitleStyle);
+    applyStyle(wsSummary, "A4", headerStyle);
+    applyStyle(wsSummary, "B4", headerStyle);
+
+    CATEGORIES.forEach((_, i) => {
+      const style = i % 2 === 0 ? rowEvenStyle : rowOddStyle;
+      applyStyle(wsSummary, `A${5 + i}`, style);
+      applyStyle(wsSummary, `B${5 + i}`, style);
+    });
+
+    const totalStyle = {
+      font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+      fill: { fgColor: { rgb: "059669" } },
+      alignment: { horizontal: "center" },
+    };
+    applyStyle(wsSummary, `A${5 + CATEGORIES.length + 1}`, totalStyle);
+    applyStyle(wsSummary, `B${5 + CATEGORIES.length + 1}`, totalStyle);
+
+    XLSX.utils.book_append_sheet(wb, wsSummary, "Pregled");
+    XLSX.writeFile(wb, `${slugify(comp.name)}_Arhiva.xlsx`);
+    showNotif(`Arhiva "${comp.name}" uspešno izvezena!`);
+  } catch (e) {
+    console.error(e);
+    showNotif("Greška pri izvozu.", "error");
+  }
+  setExporting(false);
+};
 
   // ── ARCHIVE & RESET ───────────────────────────────────────────────────────
   const handleArchiveAndReset = async () => {
