@@ -460,6 +460,67 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
     applyStyle(wsSummary, `B${5 + CATEGORIES.length + 1}`, totalStyle);
 
     XLSX.utils.book_append_sheet(wb, wsSummary, "Pregled");
+
+    // Sheet za prijave na čekanju
+    const pending = apps.filter(a => a.status === "pending");
+    const pendingHeaders = ["Rb.", "Ime psa", "Rasa", "Starost", "Mikročip", "Broj rodovnika", "Vlasnik"];
+    const pendingData = [
+      [`${comp.name} — Prijave na čekanju`, "", "", "", "", "", ""],
+      [`Mesto: ${comp.city}   |   Datum: ${fmtDate(comp.date)}   |   Datum izvoza: ${new Date().toLocaleDateString("sr-RS")}`, "", "", "", "", "", ""],
+      [],
+      pendingHeaders,
+      ...pending.map((a, i) => [i + 1, a.dog_name, a.breed, a.age, a.microchip || "—", a.pedigree || "—", a.owner_name]),
+    ];
+    if (!pending.length) pendingData.push(["", "Nema prijava na čekanju", "", "", "", "", ""]);
+    const wsPending = XLSX.utils.aoa_to_sheet(pendingData);
+    wsPending["!cols"] = [{ wch: 5 }, { wch: 20 }, { wch: 22 }, { wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 24 }];
+    wsPending["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
+    ];
+    applyStyle(wsPending, "A1", titleStyle);
+    applyStyle(wsPending, "A2", subtitleStyle);
+    pendingHeaders.forEach((_, ci) => {
+      applyStyle(wsPending, XLSX.utils.encode_cell({ r: 3, c: ci }), { ...headerStyle, fill: { fgColor: { rgb: "D97706" } } });
+    });
+    pending.forEach((_, ri) => {
+      const style = ri % 2 === 0 ? { fill: { fgColor: { rgb: "FFFBEB" } } } : rowOddStyle;
+      pendingHeaders.forEach((_, ci) => {
+        applyStyle(wsPending, XLSX.utils.encode_cell({ r: 4 + ri, c: ci }), style);
+      });
+    });
+    XLSX.utils.book_append_sheet(wb, wsPending, "Na čekanju");
+
+    // Sheet za odbijene prijave
+    const rejected = apps.filter(a => a.status === "rejected");
+    const rejectedHeaders = ["Rb.", "Ime psa", "Rasa", "Starost", "Mikročip", "Broj rodovnika", "Vlasnik"];
+    const rejectedData = [
+      [`${comp.name} — Odbijene prijave`, "", "", "", "", "", ""],
+      [`Mesto: ${comp.city}   |   Datum: ${fmtDate(comp.date)}   |   Datum izvoza: ${new Date().toLocaleDateString("sr-RS")}`, "", "", "", "", "", ""],
+      [],
+      rejectedHeaders,
+      ...rejected.map((a, i) => [i + 1, a.dog_name, a.breed, a.age, a.microchip || "—", a.pedigree || "—", a.owner_name]),
+    ];
+    if (!rejected.length) rejectedData.push(["", "Nema odbijenih prijava", "", "", "", "", ""]);
+    const wsRejected = XLSX.utils.aoa_to_sheet(rejectedData);
+    wsRejected["!cols"] = [{ wch: 5 }, { wch: 20 }, { wch: 22 }, { wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 24 }];
+    wsRejected["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
+    ];
+    applyStyle(wsRejected, "A1", titleStyle);
+    applyStyle(wsRejected, "A2", subtitleStyle);
+    rejectedHeaders.forEach((_, ci) => {
+      applyStyle(wsRejected, XLSX.utils.encode_cell({ r: 3, c: ci }), { ...headerStyle, fill: { fgColor: { rgb: "DC2626" } } });
+    });
+    rejected.forEach((_, ri) => {
+      const style = ri % 2 === 0 ? { fill: { fgColor: { rgb: "FFF5F5" } } } : rowOddStyle;
+      rejectedHeaders.forEach((_, ci) => {
+        applyStyle(wsRejected, XLSX.utils.encode_cell({ r: 4 + ri, c: ci }), style);
+      });
+    });
+    XLSX.utils.book_append_sheet(wb, wsRejected, "Odbijene");
+
     XLSX.writeFile(wb, `${slugify(comp.name)}_Arhiva.xlsx`);
     showNotif(`Arhiva "${comp.name}" uspešno izvezena!`);
   } catch (e) {
