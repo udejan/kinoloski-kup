@@ -62,6 +62,7 @@ export default function App() {
   const [resetMode, setResetMode] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [resetComplete, setResetComplete] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetMsg, setResetMsg] = useState("");
   const [notification, setNotification] = useState(null);
@@ -562,8 +563,15 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
         <>
           <div style={s.fg}>
             <label style={s.label}>Nova lozinka</label>
-            <input style={s.input} type="password" placeholder="Najmanje 6 karaktera"
-              value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+            <div style={{ position: "relative" }}>
+  <input style={{ ...s.input, paddingRight: 44 }} type={showPassword ? "text" : "password"}
+    placeholder="Najmanje 6 karaktera" value={newPassword}
+    onChange={e => setNewPassword(e.target.value)} />
+  <button onClick={() => setShowPassword(v => !v)}
+    style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#94A3B8" }}>
+    {showPassword ? "🙈" : "👁️"}
+  </button>
+</div>
           </div>
           <button style={{ ...s.btn(), width: "100%" }} onClick={handleSetNewPassword}>
             Sačuvaj novu lozinku
@@ -629,8 +637,15 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
           </div>
           <div style={s.fg}>
             <label style={s.label}>Lozinka</label>
-            <input style={s.input} type="password" placeholder="••••••••" value={authForm.password}
-              onChange={e => setAuthForm({ ...authForm, password: e.target.value })} />
+<div style={{ position: "relative" }}>
+  <input style={{ ...s.input, paddingRight: 44 }} type={showPassword ? "text" : "password"}
+    placeholder="••••••••" value={authForm.password}
+    onChange={e => setAuthForm({ ...authForm, password: e.target.value })} />
+  <button onClick={() => setShowPassword(v => !v)}
+    style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#94A3B8" }}>
+    {showPassword ? "🙈" : "👁️"}
+  </button>
+</div>
           </div>
           {authMode === "login" && (
             <div style={{ textAlign: "right", marginTop: -10, marginBottom: 12 }}>
