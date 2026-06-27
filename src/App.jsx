@@ -139,13 +139,19 @@ export default function App() {
       if (!authForm.name || !authForm.email || !authForm.password) {
         setAuthError("Sva polja su obavezna."); setAuthLoading(false); return;
       }
-      const { data, error } = await supabase.auth.signUp({
+const { data, error } = await supabase.auth.signUp({
   email: authForm.email,
   password: authForm.password,
   options: { data: { name: authForm.name } },
 });
 if (error) { setAuthError(error.message); setAuthLoading(false); return; }
-
+if (data?.user) {
+  await supabase.from("profiles").insert({
+    id: data.user.id,
+    name: authForm.name,
+    role: "user",
+  });
+}
 showNotif("Registracija uspešna! Možete se prijaviti.");
     } else {
       const { error } = await supabase.auth.signInWithPassword({
