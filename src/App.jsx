@@ -180,6 +180,8 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
       });
       if (error) { setAuthError("Pogrešan email ili lozinka."); setAuthLoading(false); return; }
       showNotif(`Dobrodošli!`);
+      setDogSuccess("");
+      setDogError("");
       setPage("dashboard");
     }
     setAuthForm({ name: "", email: "", password: "" });
