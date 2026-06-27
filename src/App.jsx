@@ -146,11 +146,12 @@ const { data, error } = await supabase.auth.signUp({
 });
 if (error) { setAuthError(error.message); setAuthLoading(false); return; }
 if (data?.user) {
-  await supabase.from("profiles").insert({
+  const { error: profileError } = await supabase.from("profiles").insert({
     id: data.user.id,
     name: authForm.name,
     role: "user",
   });
+  console.log("Profile insert error:", profileError);
 }
 showNotif("Registracija uspešna! Možete se prijaviti.");
     } else {
