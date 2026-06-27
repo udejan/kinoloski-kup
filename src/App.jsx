@@ -743,7 +743,19 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
           { url: "https://images.unsplash.com/photo-1477884213360-7e9d7dcc1e48?w=600&q=80", alt: "Kinološka izložba" },
           { url: "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=600&q=80", alt: "Psi na izložbi" },
           { url: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=600&q=80", alt: "Pobednički pas" },
-
+          
+          ].map((img, i) => (
+          <div key={i} style={{ borderRadius: 14, overflow: "hidden", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", aspectRatio: "4/3" }}>
+            <img src={img.url} alt={img.alt} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.3s", display: "block" }}
+              onMouseEnter={e => e.target.style.transform = "scale(1.05)"}
+              onMouseLeave={e => e.target.style.transform = "scale(1)"}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  </>
+)}
       {/* ── AUTH ───────────────────────────────────────────────────────── */}
       {page === "reset" && (
   <div style={{ maxWidth: 440, margin: "0 auto", padding: "2rem 1.5rem" }}>
