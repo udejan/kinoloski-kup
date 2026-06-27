@@ -145,13 +145,7 @@ export default function App() {
   options: { data: { name: authForm.name } },
 });
 if (error) { setAuthError(error.message); setAuthLoading(false); return; }
-if (data?.user) {
-  await supabase.from("profiles").insert({
-    id: data.user.id,
-    name: authForm.name,
-    role: "user",
-  });
-}
+
 showNotif("Registracija uspešna! Možete se prijaviti.");
     } else {
       const { error } = await supabase.auth.signInWithPassword({
