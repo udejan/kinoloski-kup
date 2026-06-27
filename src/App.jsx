@@ -70,9 +70,8 @@ export default function App() {
 
   // ── COMPUTED ───────────────────────────────────────────────────────────────
   const effectiveRole = userProfile
-  ? (viewRole === "admin" && (userProfile.role === "admin" || userProfile.role === "superadmin") ? "admin" : "user")
-  : "guest";
-  const isSuperAdmin = userProfile?.role === "superadmin";
+    ? (viewRole === "admin" && userProfile.role === "admin" ? "admin" : "user")
+    : "guest";
   const hasComp = competition !== null;
   const regOpen = hasComp && competition.registration_open && (
     !competition.deadline || new Date(competition.deadline) >= new Date(new Date().toDateString())
@@ -122,7 +121,7 @@ export default function App() {
     const { data } = await supabase.from("profiles").select("*").eq("id", uid).single();
     if (data) {
       setUserProfile(data);
-      setViewRole(data.role === "admin" || data.role === "superadmin" ? "admin" : "user");
+      setViewRole(data.role === "admin" ? "admin" : "user");
     }
   };
 
@@ -595,7 +594,7 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
 
   {/* Desktop navigacija */}
   <div style={s.navLinks} className="nav-desktop">
-    {userProfile?.role === "admin" || userProfile?.role === "superadmin" && (
+    {userProfile?.role === "admin" && (
       <button style={s.roleToggle} onClick={() => {
         const next = viewRole === "admin" ? "user" : "admin";
         setViewRole(next);
@@ -625,7 +624,7 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
 {/* Mobilni meni */}
 {menuOpen && (
   <div style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "1rem 1.5rem", display: "flex", flexDirection: "column", gap: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", zIndex: 99, position: "relative" }} className="nav-mobile">
-    {userProfile?.role === "admin" || userProfile?.role === "superadmin" && (
+    {userProfile?.role === "admin" && (
       <button style={{ ...s.roleToggle, textAlign: "center" }} onClick={() => {
         const next = viewRole === "admin" ? "user" : "admin";
         setViewRole(next);
@@ -981,7 +980,7 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
       )}
 
       {/* ── ADMIN PANEL ────────────────────────────────────────────────── */}
-      {page === "admin" && currentUser && userProfile?.role === "admin" || userProfile?.role === "superadmin" && (
+      {page === "admin" && currentUser && userProfile?.role === "admin" && (
         <div style={s.page}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
             <div>
@@ -1081,9 +1080,8 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
               </thead>
               <tbody>
                 {users.map(u => {
-                  const isSelf          = u.id === currentUser.id;
-                  const isAdmin         = u.role === "admin";
-                  const isSuperAdminRow = u.role === "superadmin";
+                  const isSelf  = u.id === currentUser.id;
+                  const isAdmin = u.role === "admin";
                   return (
                     <tr key={u.id} style={{ background: isAdmin ? "#F0FDF4" : "white" }}>
                       <td style={s.td}>
@@ -1096,23 +1094,17 @@ showNotif("Registracija uspešna! Prijavite se sa vašim podacima.");
                       </td>
                       <td style={s.td}>{u.email || "—"}</td>
                       <td style={s.td}>
-                        <span style={{ background: isSuperAdminRow ? "#FEF3C7" : isAdmin ? "#D1FAE5" : "#F1F5F9",
-color: isSuperAdminRow ? "#92400E" : isAdmin ? "#065F46" : "#475569",
-border: `1px solid ${isSuperAdminRow ? "#F59E0B" : isAdmin ? "#10B981" : "#CBD5E1"}`, borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 600 }}>
-                          {isSuperAdminRow ? "⭐ Superadmin" : isAdmin ? "🔧 Admin" : "👤 Korisnik"}
+                        <span style={{ background: isAdmin ? "#D1FAE5" : "#F1F5F9", color: isAdmin ? "#065F46" : "#475569", border: `1px solid ${isAdmin ? "#10B981" : "#CBD5E1"}`, borderRadius: 20, padding: "3px 12px", fontSize: 12, fontWeight: 600 }}>
+                          {isAdmin ? "🔧 Admin" : "👤 Korisnik"}
                         </span>
                       </td>
                       <td style={s.td}>
-                        {isSelf || isSuperAdminRow ? (
-  <span style={{ fontSize: 12, color: "#CBD5E1" }}>— nije moguće</span>
-) : (
-  <button
-    style={{ ...s.btn(isAdmin ? "danger" : "primary"), padding: "5px 14px", fontSize: 12 }}
-    onClick={() => handleRoleChange(u.id, isAdmin ? "user" : "admin", u.name)}>
-    {isAdmin ? "↓ Ukloni admina" : "↑ Promoviši u admina"}
-  </button>
-)}
-                          
+                        {isSelf ? <span style={{ fontSize: 12, color: "#CBD5E1" }}>— nije moguće</span> : (
+                          <button style={{ ...s.btn(isAdmin ? "danger" : "primary"), padding: "5px 14px", fontSize: 12 }}
+                            onClick={() => handleRoleChange(u.id, isAdmin ? "user" : "admin", u.name)}>
+                            {isAdmin ? "↓ Ukloni admina" : "↑ Promoviši u admina"}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
