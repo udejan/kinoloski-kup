@@ -58,7 +58,8 @@ export default function App() {
   const [editCompForm, setEditCompForm]   = useState({ name: "", date: "", city: "", deadline: "" });
 
   // misc
-  const [exporting, setExporting]       = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [resetComplete, setResetComplete] = useState(false);
@@ -316,8 +317,83 @@ showNotif("Registracija uspešna! Možete se prijaviti.");
               newRole === "admin" ? "success" : "info");
   };
 
-  // ── EXPORT XLSX ───────────────────────────────────────────────────────────
- const handleExportXLSX = async (comp = competition, apps = applications) => {
+  // ── EXPORT XLSX & PDF ───────────────────────────────────────────────────────────
+const handleExportPDF = (comp = competition, apps = applications) => {
+  const approved = apps.filter(a => a.status === "approved");
+  const pending  = apps.filter(a => a.status === "pending");
+  const rejected = apps.filter(a => a.status === "rejected");
+
+  const tableHTML = (rows, emptyMsg, headerColor) => {
+    let t = `<table><thead><tr><th style="background:${headerColor}">Rb.</th><th style="background:${headerColor}">Ime psa</th><th style="background:${headerColor}">Rasa</th><th style="background:${headerColor}">Starost</th><th style="background:${headerColor}">Mikročip</th><th style="background:${headerColor}">Rodovnik</th><th style="background:${headerColor}">Vlasnik</th></tr></thead><tbody>`;
+    if (!rows.length) {
+      t += `<tr><td colspan="7" class="empty">${emptyMsg}</td></tr>`;
+    } else {
+      rows.forEach((a, i) => {
+        t += `<tr><td>${i + 1}</td><td>${a.dog_name}</td><td>${a.breed}</td><td>${a.age}</td><td>${a.microchip || "—"}</td><td>${a.pedigree || "—"}</td><td>${a.owner_name}</td></tr>`;
+      });
+    }
+    t += `</tbody></table>`;
+    return t;
+  };
+
+  let html = `
+    <html><head><meta charset="utf-8">
+    <style>
+      body { font-family: Arial, sans-serif; padding: 20px; color: #1a1a2e; }
+      h1 { color: #0C4A6E; font-size: 20px; margin-bottom: 4px; }
+      h2 { color: #0369A1; font-size: 15px; margin: 24px 0 8px; border-bottom: 2px solid #0369A1; padding-bottom: 4px; }
+      h3 { color: #475569; font-size: 13px; margin: 16px 0 6px; }
+      p { color: #475569; font-size: 12px; margin: 0 0 16px; }
+      table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 16px; }
+      th { color: white; padding: 7px 8px; text-align: left; }
+      td { padding: 6px 8px; border-bottom: 1px solid #e2e8f0; }
+      tr:nth-child(even) { background: #F0F9FF; }
+      .empty { color: #94A3B8; font-style: italic; padding: 10px; }
+      .total td { background: #059669 !important; color: white; font-weight: bold; }
+      .footer { margin-top: 30px; font-size: 11px; color: #94A3B8; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+      @media print {
+        h2 { page-break-before: always; }
+        h2:first-of-type { page-break-before: avoid; }
+      }
+    </style></head><body>
+    <h1>${comp.name}</h1>
+    <p>📍 ${comp.city} &nbsp;|&nbsp; 📅 ${fmtDate(comp.date)} &nbsp;|&nbsp; Datum izvoza: ${new Date().toLocaleDateString("sr-RS")}</p>
+
+    <h2>Odobrene prijave po kategorijama</h2>
+  `;
+
+  CATEGORIES.forEach(cat => {
+    const rows = approved.filter(a => a.category === cat);
+    html += `<h3>Kategorija: ${cat} (${rows.length} prijava)</h3>`;
+    html += tableHTML(rows, "Nema odobrenih prijava u ovoj kategoriji", "#0369A1");
+  });
+
+  html += `<h2>Prijave na čekanju</h2>`;
+  html += tableHTML(pending, "Nema prijava na čekanju", "#D97706");
+
+  html += `<h2>Odbijene prijave</h2>`;
+  html += tableHTML(rejected, "Nema odbijenih prijava", "#DC2626");
+
+  html += `<h2>Pregled</h2>`;
+  html += `<table><thead><tr><th style="background:#0369A1">Kategorija</th><th style="background:#0369A1">Odobrenih prijava</th></tr></thead><tbody>`;
+  CATEGORIES.forEach(cat => {
+    html += `<tr><td>${cat}</td><td>${approved.filter(a => a.category === cat).length}</td></tr>`;
+  });
+  html += `<tr class="total"><td>UKUPNO ODOBRENIH</td><td>${approved.length}</td></tr>`;
+  html += `</tbody></table>`;
+  html += `<p>Prijave na čekanju: <strong>${pending.length}</strong> &nbsp;|&nbsp; Odbijene: <strong>${rejected.length}</strong></p>`;
+
+  html += `<div class="footer">KinološkiKup © ${new Date().getFullYear()} &nbsp;|&nbsp; Datum izvoza: ${new Date().toLocaleString("sr-RS")}</div>`;
+  html += `</body></html>`;
+
+  const win = window.open("", "_blank");
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => win.print(), 500);
+  showNotif("PDF je pripremljen za štampu/čuvanje!");
+}; 
+
+const handleExportXLSX = async (comp = competition, apps = applications) => {
   setExporting(true);
   try {
     const XLSX = await loadXLSX();
@@ -1078,9 +1154,28 @@ showNotif("Registracija uspešna! Možete se prijaviti.");
                   <button style={{ ...s.btn(regOpen ? "warning" : "success"), display: "flex", alignItems: "center", gap: 6 }} onClick={toggleRegistration}>
                     {regOpen ? "🔒 Zaključaj prijave" : "🔓 Otvori prijave"}
                   </button>
-                  <button style={{ ...s.btn("success"), display: "flex", alignItems: "center", gap: 6, opacity: exporting ? 0.7 : 1 }} onClick={() => handleExportXLSX()} disabled={exporting}>
-                    {exporting ? "⏳ Izvoz..." : "📥 Izvezi odobrene"}
-                  </button>
+                  <div style={{ position: "relative" }}>
+  <button style={{ ...s.btn("success"), display: "flex", alignItems: "center", gap: 6, opacity: exporting ? 0.7 : 1 }}
+    onClick={() => setExportMenuOpen(v => !v)} disabled={exporting}>
+    {exporting ? "⏳ Izvoz..." : "📥 Izvoz podataka ▾"}
+  </button>
+  {exportMenuOpen && (
+    <div style={{ position: "absolute", top: "110%", right: 0, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, boxShadow: "0 4px 16px rgba(0,0,0,0.1)", zIndex: 50, minWidth: 180, overflow: "hidden" }}>
+      <button style={{ width: "100%", padding: "10px 16px", textAlign: "left", background: "none", border: "none", cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}
+        onMouseEnter={e => e.currentTarget.style.background = "#F0FDF4"}
+        onMouseLeave={e => e.currentTarget.style.background = "none"}
+        onClick={() => { handleExportXLSX(); setExportMenuOpen(false); }}>
+        📊 Excel dokument
+      </button>
+      <button style={{ width: "100%", padding: "10px 16px", textAlign: "left", background: "none", border: "none", cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}
+        onMouseEnter={e => e.currentTarget.style.background = "#EFF6FF"}
+        onMouseLeave={e => e.currentTarget.style.background = "none"}
+        onClick={() => { handleExportPDF(); setExportMenuOpen(false); }}>
+        📄 PDF dokument
+      </button>
+    </div>
+  )}
+</div>
                   <button style={{ ...s.btn("danger"), display: "flex", alignItems: "center", gap: 6 }} onClick={() => setArchiveModal(true)}>
                     🗄️ Arhiviraj i resetuj
                   </button>
