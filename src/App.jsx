@@ -671,6 +671,7 @@ showNotif("Registracija uspešna! Možete se prijaviti.");
         const next = viewRole === "admin" ? "user" : "admin";
         setViewRole(next);
         setPage(next === "admin" ? "admin" : "dashboard");
+        if (next === "admin") { loadUsers(); if (competition) loadApplications(); }
       }}>
         {viewRole === "admin" ? "👤 Korisnik" : "🔧 Admin"}
       </button>
@@ -701,6 +702,7 @@ showNotif("Registracija uspešna! Možete se prijaviti.");
         const next = viewRole === "admin" ? "user" : "admin";
         setViewRole(next);
         setPage(next === "admin" ? "admin" : "dashboard");
+        if (next === "admin") { loadUsers(); if (competition) loadApplications(); }
         setMenuOpen(false);
       }}>
         {viewRole === "admin" ? "👤 Korisnik pogled" : "🔧 Admin pogled"}
